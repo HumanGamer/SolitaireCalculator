@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace SolitaireCalculator
 {
-	public class Deck
+	public class Deck : IEnumerable
 	{
 		protected Card[] Cards;
+
+		public int Count => Cards.Length;
 
 		public bool InitialDeck
 		{
@@ -26,17 +29,11 @@ namespace SolitaireCalculator
 		{
 			// Init standard deck
 			for (int i = 0; i < Cards.Length; i++)
-				Cards[i] = new Card((Suite)(i / 13), (CardValue)(i + 1));
+				Cards[i] = new Card((Suite)(i / 13), (CardValue)((i % 13) + 1));
 			InitialDeck = true;
 		}
 
-		public Card this[int index]
-		{
-			get
-			{
-				return Cards[index];
-			}
-		}
+		public Card this[int index] => Cards[index];
 
 		public void Shuffle()
 		{
@@ -64,6 +61,11 @@ namespace SolitaireCalculator
 			}
 
 			return result;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return Cards.GetEnumerator();
 		}
 	}
 }

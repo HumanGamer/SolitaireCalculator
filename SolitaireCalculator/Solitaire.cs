@@ -426,5 +426,22 @@ namespace SolitaireCalculator
 
 			return sb.ToString();
 		}
+
+		public static Deck GetWinningGame(int rows = 7, int pick = 1)
+		{
+			Deck deck = new Deck();
+			bool winnable;
+			do
+			{
+				deck.Shuffle();
+
+				Solitaire solitaire = new Solitaire(deck);
+				solitaire.Setup(rows, pick);
+
+				winnable = solitaire.CanWin();
+			} while (!winnable);
+
+			return deck;
+		}
 	}
 }

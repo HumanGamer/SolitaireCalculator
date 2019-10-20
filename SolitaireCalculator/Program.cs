@@ -1,48 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SolitaireCalculator
 {
 	public class Program
 	{
+		private static void DisplayWinningGame()
+		{
+			Console.WriteLine("----------------------------");
+			Console.WriteLine("Deck Layout  (Back to Front)");
+			Console.WriteLine("----------------------------");
+
+			Deck deck = Solitaire.GetWinningGame();
+
+			foreach (Card c in deck)
+				Console.WriteLine(" - " + c.ToString());
+		}
+
 		public static void Main(string[] args)
 		{
 			Console.WriteLine("============================");
 			Console.WriteLine("=== Solitaire Calculator ===");
 			Console.WriteLine("============================");
-			Console.WriteLine("----------------------------");
-			Console.WriteLine("Deck Layout  (Back to Front)");
-			Console.WriteLine("----------------------------");
 
-			Deck deck = new Deck();
-			bool winnable;
-			do
+			int numGames = 1000;
+			string outputFile = "solitaire.csv";
+
+			Console.WriteLine("Generating " + numGames + " winning games of solitaire > " + outputFile);
+
+			using (Stream s = File.Open(outputFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+			using (StreamWriter sw = new StreamWriter(s))
 			{
-				deck.Shuffle();
+				for (int i = 0; i < numGames; i++)
+				{
+					Deck deck = Solitaire.GetWinningGame();
+					for (int j = 0; j < deck.Count; j++)
+					{
+						Card c = deck[j];
 
-				/*Console.WriteLine("============================");
-				Console.WriteLine("----------------------------");
-				Console.WriteLine("Solitaire Game");
-				Console.WriteLine("----------------------------");*/
+						sw.Write(c.CodeName);
+						//sw.Write(c);
 
-				int rows = 7;
-				int pick = 1;
-
-				Solitaire solitaire = new Solitaire(deck);
-				solitaire.Setup(rows, pick);
-
-				//Console.WriteLine(solitaire.GetGameString());
-
-				winnable = solitaire.CanWin();
-			} while (!winnable);
-
-			foreach (Card c in deck)
-				Console.WriteLine(" - " + c.ToString());
-
-			Console.WriteLine("Winnable: " + (winnable ? "Yes" : "No"));
+						if (j < deck.Count - 1)
+							sw.Write(",");
+					}
+					sw.WriteLine();
+					Thread.Sleep(1);
+				}
+			}
 			
 			Console.WriteLine("Press any key to continue...");
 			Console.ReadKey();

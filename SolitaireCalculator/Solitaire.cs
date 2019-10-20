@@ -18,6 +18,9 @@ namespace SolitaireCalculator
 		protected Dictionary<Suite, List<Card>> WinningPiles;
 		protected int PickAmount;
 
+		protected List<Move> Moves;
+		protected List<Move> LastMoves;
+
 		public Solitaire(Deck deck = null)
 		{
 			if (deck == null)
@@ -27,6 +30,9 @@ namespace SolitaireCalculator
 			}
 			else
 				Deck = deck;
+
+			Moves = new List<Move>();
+			LastMoves = new List<Move>();
 		}
 
 		public void Setup(int rows = 7, int pick = 1)
@@ -152,14 +158,6 @@ namespace SolitaireCalculator
 		{
 			WinningPiles[card.Suite].Add(card);
 			Rows[row].RemoveAt(Rows[row].Count - 1);
-
-			string s = "Moving " + card + " from row " + (row + 1) + " to winning pile";
-
-			Console.WriteLine(GetLayoutAsString());
-			Console.WriteLine(s);
-
-			Console.WriteLine("Press any key to continue...");
-			Console.ReadKey();
 		}
 
 		public void MoveSubRow(int row, int column, int newRow)
@@ -169,51 +167,47 @@ namespace SolitaireCalculator
 			for (int i = column; i < r.Count; i++)
 				cards.Add(r[i].Card);
 
-			string s = "Moving " + cards[0] + " from row " + (row + 1) + " to " + FindTopCard(newRow) + " row " + (newRow + 1);
-
 			Rows[row].RemoveUntilEnd(column);
 
 			if (FindTopCard(row) == null && Rows[row].Count > 0)
 				Rows[row][Rows[row].Count - 1].Hidden = false;
 
 			Rows[newRow].AddRange(cards);
-
-			Console.WriteLine(GetLayoutAsString());
-			Console.WriteLine(s);
-
-			Console.WriteLine("Press any key to continue...");
-			Console.ReadKey();
 		}
 
-		public bool TestCardFromPile(int index)
+		public void TestMoveCardFromPile(int index)
 		{
 			Card c = CardPile[index];
 
+			if (FindWinningPile(c))
+				Moves.Add(new Move(MoveType.CardPileToWinPile, c, -1, index));
+
 			int row = FindValidRow(c);
 			if (row == -1)
-			{
-				if (FindWinningPile(c))
-				{
-					CardPile.RemoveAt(index);
-					WinningPiles[c.Suite].Add(c);
-					Console.WriteLine("Moved " + c + " from card pile to winning pile");
-					return true;
-				}
+				return;
+
+			Moves.Add(new Move(MoveType.CardPileToRow, c, -1, index, FindTopCard(row), row, false));
+		}
+
+		public bool HasWon()
+		{
+			if (CardPile.Count > 0)
 				return false;
+
+			foreach (Pile row in Rows)
+			{
+				if (row.Count > 0)
+					return false;
 			}
-
-			Console.WriteLine("Moved " + c + " from card pile to row " + (row + 1) + " on top of " + FindTopCard(row));
-
-			CardPile.RemoveAt(index);
-			Rows[row].Add(c, false);
 
 			return true;
 		}
 
-		public bool NextMove()
+		public void BuildPossibleMoveList()
 		{
-			// TODO: Find all valid moves and pick best option
-			// Find a valid move
+			Moves.Clear();
+
+			// Find a valid row->row move
 			int i;
 			for (i = 0; i < Rows.Length; i++)
 			{
@@ -227,65 +221,119 @@ namespace SolitaireCalculator
 					if (row == -1)
 						continue;
 
-					MoveSubRow(i, j, row);
-					return true;
+					bool multipleCards = j < Rows[i].Count - 1;
+
+					Moves.Add(new Move(MoveType.RowToRow, cardref.Card, i, j, FindTopCard(row), row, multipleCards));
 				}
 			}
 
 			// Check card pile if no more standard moves
 			for (i = 0; i < CardPile.Count; i += PickAmount)
-			{
-				if (TestCardFromPile(i))
-					return true;
-			}
+				TestMoveCardFromPile(i);
 
 			if (i > CardPile.Count)
 			{
 				i -= PickAmount;
 				for (; i < CardPile.Count; i++)
-				{
-					if (TestCardFromPile(i))
-						return true;
-				}
+					TestMoveCardFromPile(i);
 			}
 
 			// Put cards in win pile if no other moves
 			for (i = 0; i < Rows.Length; i++)
 			{
 				Card c = FindTopCard(i);
+				if (c == null)
+					continue;
 
 				if (FindWinningPile(c))
-				{
-					PutWinningCard(i, c);
-					return true;
-				}
+					Moves.Add(new Move(MoveType.RowToWinPile, c, i, Rows[i].Count - 1));
 			}
-
-			return false;
 		}
 
-		public bool ProcessMoves()
+		public bool ProcessNextMove()
 		{
-			while (true)
+			BuildPossibleMoveList();
+			if (Moves.Count == 0)
+				return true;
+
+			Move selectedMove = Moves[0];
+			Move originalSelectedMove = selectedMove;
+			LastMoves.Add(selectedMove);
+
+			//if (LastMoves.Count > 20)
+			//	LastMoves.RemoveAt(0);
+
+			int index = 1;
+			while (LastMoves.Contains(selectedMove))
 			{
-				if (!NextMove())
+				if (index >= Moves.Count)
+					return false;
+				//Console.WriteLine("Detected infinite loop of moves, trying another option");
+				selectedMove = Moves[index++];
+
+				//Console.WriteLine("Press any key to continue...");
+				//Console.ReadKey();
+			}
+
+			if (selectedMove != originalSelectedMove)
+			{
+				LastMoves.Add(selectedMove);
+
+				if (LastMoves.Count > 4)
+					LastMoves.RemoveAt(0);
+			}
+
+			//Console.WriteLine(GetLayoutAsString());
+			Console.WriteLine("Selected Move: " + selectedMove);
+
+			//Console.WriteLine("Press any key to continue...");
+			//Console.ReadKey();
+
+			switch (selectedMove.Type)
+			{
+				case MoveType.RowToRow:
+					MoveSubRow(selectedMove.SourceRow, selectedMove.SourceColumn, selectedMove.TargetRow);
+					break;
+				case MoveType.RowToWinPile:
+					PutWinningCard(selectedMove.SourceRow, selectedMove.MovingCard);
+					break;
+				case MoveType.CardPileToRow:
+					CardPile.RemoveAt(selectedMove.SourceColumn);
+					Rows[selectedMove.TargetRow].Add(selectedMove.MovingCard, false);
+					break;
+				case MoveType.CardPileToWinPile:
+					CardPile.RemoveAt(selectedMove.SourceColumn);
+					WinningPiles[selectedMove.MovingCard.Suite].Add(selectedMove.MovingCard);
+					break;
+				case MoveType.WinPileToRow:
+					WinningPiles[selectedMove.MovingCard.Suite].RemoveAt(selectedMove.SourceColumn);
+					Rows[selectedMove.TargetRow].Add(selectedMove.MovingCard, false);
 					break;
 			}
 
 			return true;
 		}
 
+		public bool ProcessMoves()
+		{
+			while (HasMoreMoves())
+			{
+				if (!ProcessNextMove())
+					break;
+			}
+
+			return HasWon();
+		}
+
 		public bool HasMoreMoves()
 		{
-			// TODO: Implement
-			return true;
+			BuildPossibleMoveList();
+			return Moves.Count > 0;
 		}
 
 		public bool CanWin()
 		{
 			return ProcessMoves();
-			//// TODO: Implement
-			//return true;
 		}
 
 		public string GetGameString()

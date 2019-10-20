@@ -46,6 +46,8 @@
     <Compile Include="Card.cs" />
     <Compile Include="CardValue.cs" />
     <Compile Include="Deck.cs" />
+    <Compile Include="Move.cs" />
+    <Compile Include="MoveType.cs" />
     <Compile Include="Pile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

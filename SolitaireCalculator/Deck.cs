@@ -42,7 +42,7 @@ namespace SolitaireCalculator
 			List<Card> newCards = new List<Card>();
 			while (originalCards.Count > 0)
 			{
-				int r = rand.Next(0, originalCards.Count - 1);
+				int r = rand.Next(0, originalCards.Count);
 				newCards.Add(originalCards[r]);
 				originalCards.RemoveAt(r);
 			}

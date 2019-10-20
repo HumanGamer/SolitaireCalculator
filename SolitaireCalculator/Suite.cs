@@ -9,8 +9,8 @@ namespace SolitaireCalculator
 	public enum Suite
 	{
 		Diamonds,
+		Clubs,
 		Hearts,
 		Spades,
-		Clubs
 	}
 }

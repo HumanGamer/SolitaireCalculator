@@ -18,25 +18,29 @@ namespace SolitaireCalculator
 			Console.WriteLine("----------------------------");
 
 			Deck deck = new Deck();
-			//deck.Shuffle();
+			bool winnable;
+			do
+			{
+				deck.Shuffle();
+
+				/*Console.WriteLine("============================");
+				Console.WriteLine("----------------------------");
+				Console.WriteLine("Solitaire Game");
+				Console.WriteLine("----------------------------");*/
+
+				int rows = 7;
+				int pick = 1;
+
+				Solitaire solitaire = new Solitaire(deck);
+				solitaire.Setup(rows, pick);
+
+				//Console.WriteLine(solitaire.GetGameString());
+
+				winnable = solitaire.CanWin();
+			} while (!winnable);
 
 			foreach (Card c in deck)
 				Console.WriteLine(" - " + c.ToString());
-
-			Console.WriteLine("============================");
-			Console.WriteLine("----------------------------");
-			Console.WriteLine("Solitaire Game");
-			Console.WriteLine("----------------------------");
-
-			int rows = 7;
-			int pick = 1;
-
-			Solitaire solitaire = new Solitaire(deck);
-			solitaire.Setup(rows, pick);
-
-			Console.WriteLine(solitaire.GetGameString());
-
-			bool winnable = solitaire.CanWin();
 
 			Console.WriteLine("Winnable: " + (winnable ? "Yes" : "No"));
 			

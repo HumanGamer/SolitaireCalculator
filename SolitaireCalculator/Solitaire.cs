@@ -284,7 +284,7 @@ namespace SolitaireCalculator
 			}
 
 			//Console.WriteLine(GetLayoutAsString());
-			Console.WriteLine("Selected Move: " + selectedMove);
+			/*Console.WriteLine("Selected Move: " + selectedMove);*/
 
 			//Console.WriteLine("Press any key to continue...");
 			//Console.ReadKey();

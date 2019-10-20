@@ -9,10 +9,10 @@ namespace SolitaireCalculator
 {
 	public class Pile : IEnumerable
 	{
-		public struct CardReference
+		public class CardReference
 		{
 			public readonly Card Card;
-			public readonly bool Hidden;
+			public bool Hidden;
 
 			public CardReference(Card card, bool hidden)
 			{
@@ -42,9 +42,20 @@ namespace SolitaireCalculator
 			Cards.Add(new CardReference(card, hidden));
 		}
 
+		public void AddRange(List<Card> cards, bool hidden = false)
+		{
+			foreach (Card c in cards)
+				Cards.Add(new CardReference(c, hidden));
+		}
+
 		public void RemoveAt(int index)
 		{
 			Cards.RemoveAt(index);
+		}
+
+		public void RemoveUntilEnd(int index)
+		{
+			Cards.RemoveRange(index, Cards.Count - index);
 		}
 
 		public IEnumerator GetEnumerator()

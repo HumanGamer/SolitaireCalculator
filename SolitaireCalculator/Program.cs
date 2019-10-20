@@ -18,7 +18,7 @@ namespace SolitaireCalculator
 			Console.WriteLine("----------------------------");
 
 			Deck deck = new Deck();
-			deck.Shuffle();
+			//deck.Shuffle();
 
 			foreach (Card c in deck)
 				Console.WriteLine(" - " + c.ToString());
@@ -34,8 +34,12 @@ namespace SolitaireCalculator
 			Solitaire solitaire = new Solitaire(deck);
 			solitaire.Setup(rows, pick);
 
-			Console.WriteLine(solitaire.GetLayoutAsString());
+			Console.WriteLine(solitaire.GetGameString());
 
+			bool winnable = solitaire.CanWin();
+
+			Console.WriteLine("Winnable: " + (winnable ? "Yes" : "No"));
+			
 			Console.WriteLine("Press any key to continue...");
 			Console.ReadKey();
 		}

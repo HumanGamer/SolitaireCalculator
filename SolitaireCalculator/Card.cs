@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SolitaireCalculator
 {
-	public struct Card
+	public class Card
 	{
 		public readonly Suite Suite;
 		public readonly CardValue Value;
